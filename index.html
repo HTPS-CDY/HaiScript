@@ -1,1 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HaiScript - 轻量级脚本语言与命令行工具箱</title>
+<style>
+  :root{
+    --bg:#0d1117; --fg:#e6edf3; --muted:#8b949e;
+    --line:#30363d; --card:#161b22;
+    --link:#58a6ff; --accent:#2f81f7; --ok:#3fb950; --warn:#d29922;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans SC",sans-serif;line-height:1.65}
+  a{color:var(--link);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
 
+  /* ---------- 公告栏（方便修改） ---------- */
+  .announce{
+    background:linear-gradient(90deg,#1f6feb22,#3fb95022);
+    border-bottom:1px solid var(--line);
+    padding:14px 0;
+  }
+  .announce .wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;background:var(--accent);color:#fff;font-size:12px;font-weight:600}
+  .announce p{color:#e6edf3;font-size:14px;flex:1;min-width:0}
+  .announce .edit-hint{font-size:12px;color:var(--muted)}
+
+  /* ---------- 头部 ---------- */
+  header{padding:48px 0 24px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+  .logo{
+    width:56px;height:56px;border-radius:12px;
+    background:linear-gradient(135deg,var(--accent),#8957e5);
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px;
+  }
+  .brand h1{font-size:28px;font-weight:700}
+  .brand .ver{background:var(--card);border:1px solid var(--line);color:var(--muted);padding:3px 10px;border-radius:14px;font-size:12px;margin-left:8px}
+  .sub{color:var(--muted);font-size:15px;margin-bottom:24px;max-width:720px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap}
+  .badges a{
+    display:inline-block;padding:6px 12px;border-radius:6px;
+    background:var(--card);border:1px solid var(--line);color:var(--fg);font-size:13px;
+  }
+  .badges a:hover{border-color:var(--accent);text-decoration:none;color:var(--link)}
+
+  /* ---------- 区块 ---------- */
+  section{padding:40px 0;border-bottom:1px solid var(--line)}
+  section:last-of-type{border-bottom:0}
+  h2{font-size:20px;margin-bottom:20px;font-weight:700}
+  h3{font-size:16px;margin-bottom:12px;color:var(--fg);font-weight:600}
+  p{color:var(--muted);margin-bottom:12px}
+
+  /* ---------- 特性网格 ---------- */
+  .feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .feat .i{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+  .feat .i .n{font-weight:600;margin-bottom:6px}
+  .feat .i .d{color:var(--muted);font-size:14px}
+
+  /* ---------- 代码 ---------- */
+  pre{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-family:ui-monospace,"Cascadia Mono","Fira Code",Consolas,monospace;font-size:13px;color:#e6edf3;margin-bottom:12px}
+  code{background:var(--card);border:1px solid var(--line);padding:1px 6px;border-radius:4px;font-size:13px;font-family:ui-monospace,Consolas,monospace}
+
+  /* ---------- 源码文件表格 ---------- */
+  table{width:100%;border-collapse:collapse;margin-bottom:16px;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}
+  th{background:#0d1117;color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  tr:last-child td{border-bottom:0}
+  td code{background:transparent;border:0;padding:0}
+  .muted{color:var(--muted);font-size:13px}
+
+  /* ---------- 下载 ---------- */
+  .down{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .down .i{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px}
+  .down .i h4{margin-bottom:6px;font-size:15px}
+  .down .i .dsc{color:var(--muted);font-size:13px;margin-bottom:12px;min-height:40px}
+  .btn{
+    display:inline-block;padding:8px 14px;border-radius:6px;
+    background:var(--accent);color:#fff;font-size:13px;font-weight:600;border:0;cursor:pointer;
+  }
+  .btn:hover{text-decoration:none;opacity:.9}
+  .btn.out{background:transparent;color:var(--fg);border:1px solid var(--line)}
+  .btn.out:hover{border-color:var(--accent);color:var(--link)}
+  .sz{color:var(--muted);font-size:12px;margin-left:8px}
+
+  /* ---------- 页脚 ---------- */
+  footer{padding:32px 0;border-top:1px solid var(--line);margin-top:24px;color:var(--muted);font-size:13px;text-align:center}
+
+  /* ---------- 响应 ---------- */
+  @media(max-width:640px){
+    header{padding:32px 0 16px}
+    .brand h1{font-size:22px}
+    h2{font-size:18px}
+    pre{font-size:12px;padding:12px}
+    th,td{padding:8px 10px;font-size:13px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ====================================================================== -->
+<!-- 公告栏：修改 ANNOUNCE_TEXT 即可发布新公告                                -->
+<!-- ====================================================================== -->
+<div class="announce">
+  <div class="wrap">
+    <span class="tag">📢 公告</span>
+    <p id="announce-text">HaiScript v1.2.0 正式发布！汇编后端 NASM + lld-link 已完全自包含，新增 hsinser 包管理器、8 项标准库。</p>
+    <span class="edit-hint">（修改 index.html 顶部 <code>id=announce-text</code> 更新公告）</span>
+  </div>
+</div>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">HS</div>
+      <div>
+        <h1>HaiScript <span class="ver">v1.2.0</span></h1>
+      </div>
+    </div>
+    <p class="sub">轻量级脚本语言与命令行工具箱。类 Python 语法、双后端原生编译、完全自包含的汇编工具链、内置包管理器、零第三方依赖。</p>
+    <div class="badges">
+      <a href="https://github.com/HTPS-CDY/HaiScript/releases/download/1.2.0/haiscript.tar" target="_blank" style="background:#238636;border-color:#2ea043;color:#fff;font-weight:600">⬇️ 下载 haiscript.tar（直接运行 EXE）</a>
+      <a href="https://github.com/HTPS-CDY/HaiScript" target="_blank">GitHub 主仓库</a>
+      <a href="https://github.com/HTPS-CDY/HSLib" target="_blank">📦 包仓库 HSLib</a>
+      <a href="https://github.com/HTPS-CDY/HaiScript/blob/master/README.md" target="_blank">📄 文档 README</a>
+      <a href="https://github.com/HTPS-CDY/HaiScript/releases" target="_blank">全部 Releases</a>
+    </div>
+  </div>
+</header>
+
+<!-- 特性 -->
+<section>
+  <div class="wrap">
+    <h2>核心特性</h2>
+    <div class="feat">
+      <div class="i"><div class="n">💻 交互式 Shell</div><div class="d">文件 / 系统 / 网络 / 编码命令，一站式操作。</div></div>
+      <div class="i"><div class="n">📝 HaiScript (.hs)</div><div class="d">类 Python 语法，变量 / 函数递归 / 字符串 / 列表 / Map / Set / try-catch / 类型注解。</div></div>
+      <div class="i"><div class="n">⚡ 双后端编译</div><div class="d">C 后端 (GCC)，汇编后端 NASM + lld-link，完全自包含，零外部依赖。</div></div>
+      <div class="i"><div class="n">📦 标准库</div><div class="d">json / path / os / math / pic(图片) / touch(外部调用) / http(内网) / lan(局域网)。</div></div>
+      <div class="i"><div class="n">🧩 包管理器 hsinser</div><div class="d">从 HSLib 仓库一键下载安装扩展包：<code>hsinser install xxx</code>。</div></div>
+      <div class="i"><div class="n">🛠️ 开发工具</div><div class="d">fmt 格式化 / typecheck 渐进式类型检查 / IR 中间表示 + 常量折叠优化。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 快速开始 -->
+<section>
+  <div class="wrap">
+    <h2>快速开始</h2>
+    <h3>交互式 Shell</h3>
+<pre><code>git clone https://github.com/HTPS-CDY/HaiScript.git
+cd HaiScript
+python -m haiscript.main</code></pre>
+
+    <h3>常用命令</h3>
+<pre><code># 执行脚本
+python -m haiscript.main run demo.hs
+
+# 编译为原生 EXE（汇编后端，零外部依赖）
+python -m haiscript.main compile demo.hs demo.exe --asm
+
+# 语法检查 / 格式化 / 类型检查
+python -m haiscript.main check demo.hs
+python -m haiscript.main fmt demo.hs -i
+python -m haiscript.main typecheck demo.hs
+
+# 安装扩展包
+python -m haiscript.main hsinser install mypkg
+python -m haiscript.main hsinser list</code></pre>
+  </div>
+</section>
+
+<!-- 源码（所有文件下载链接） -->
+<section>
+  <div class="wrap">
+    <h2>项目源码 &amp; 发行版</h2>
+    <div style="margin-bottom:16px;padding:14px;background:linear-gradient(90deg,#23863622,#2ea04322);border:1px solid #2ea04355;border-radius:8px">
+      <h3 style="color:#3fb950;margin-bottom:8px">🚀 直接运行版（免装 Python / 免编译）</h3>
+      <p class="muted" style="margin-bottom:12px"><code>haiscript.tar</code> 内含打包好的 <code>haiscript.exe</code>，解压后双击即可进入交互式 Shell，无需安装任何环境。汇编后端也已完整嵌入（NASM + lld-link + 全部 DLL）。</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn" style="background:#238636;border:1px solid #2ea043" href="https://github.com/HTPS-CDY/HaiScript/releases/download/1.2.0/haiscript.tar" target="_blank">⬇️ 下载 haiscript.tar</a>
+        <a class="btn out" href="https://github.com/HTPS-CDY/HaiScript/releases" target="_blank">全部版本与历史 Releases</a>
+        <span class="muted" style="align-self:center;font-size:13px">使用方式：解压 → 运行 haiscript.exe → 输入命令</span>
+      </div>
+    </div>
+    <p class="muted">点击任意文件名可直接在 GitHub 查看/下载。也可一键打包下载全部源码。</p>
+    <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn" href="https://github.com/HTPS-CDY/HaiScript/archive/refs/heads/master.zip" target="_blank">⬇️ 下载全部源码 (ZIP)</a>
+      <a class="btn out" href="https://github.com/HTPS-CDY/HaiScript/tags" target="_blank">历史版本 (Tags)</a>
+    </div>
+
+    <h3>haiscript/ 核心</h3>
+    <table>
+      <tr><th style="width:36%">文件</th><th>说明</th><th>GitHub 直达</th></tr>
+      <tr><td><code>haiscript/__init__.py</code></td><td>版本号</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/__init__.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>haiscript/main.py</code></td><td>主入口（Shell + CLI 调度）</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/main.py" target="_blank">查看</a></td></tr>
+    </table>
+
+    <h3>haiscript/core/ 核心子系统</h3>
+    <table>
+      <tr><th style="width:36%">文件</th><th>说明</th><th>GitHub 直达</th></tr>
+      <tr><td><code>core/constants.py</code></td><td>项目名 / 版本 / 官网 / 作者 / 链接</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/core/constants.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>core/config.py</code></td><td>用户配置管理 (~/.haiscript/config.json)</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/core/config.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>core/security.py</code></td><td>运行权限与路径管理</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/core/security.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>core/alias.py</code></td><td>别名管理</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/core/alias.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>core/history.py</code></td><td>命令历史</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/core/history.py" target="_blank">查看</a></td></tr>
+    </table>
+
+    <h3>haiscript/commands/ Shell 命令</h3>
+    <table>
+      <tr><th style="width:36%">文件</th><th>说明</th><th>GitHub 直达</th></tr>
+      <tr><td><code>commands/filesystem.py</code></td><td>cd / ls / mkdir / touch / rm / cp / mv / find / cat / echo</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/commands/filesystem.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>commands/system.py</code></td><td>whoami / hostname / date / time / sysinfo / ps / kill / clear</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/commands/system.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>commands/network.py</code></td><td>ping / ipconfig / netstat</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/commands/network.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>commands/encoding.py</code></td><td>base64 / hex</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/commands/encoding.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>commands/package.py</code></td><td>hsinser 包管理器（HSLib）</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/commands/package.py" target="_blank">查看</a></td></tr>
+    </table>
+
+    <h3>haiscript/interpreter/ 解释器</h3>
+    <table>
+      <tr><th style="width:36%">文件</th><th>说明</th><th>GitHub 直达</th></tr>
+      <tr><td><code>interpreter/lexer.py</code></td><td>词法分析 → Token</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/interpreter/lexer.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>interpreter/parser.py</code></td><td>语法分析 → AST</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/interpreter/parser.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>interpreter/interpreter.py</code></td><td>AST 解释执行 + 标准库加载</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/interpreter/interpreter.py" target="_blank">查看</a></td></tr>
+    </table>
+
+    <h3>haiscript/compiler_c/ C 后端</h3>
+    <table>
+      <tr><th style="width:36%">文件</th><th>说明</th><th>GitHub 直达</th></tr>
+      <tr><td><code>compiler_c/codegen.py</code></td><td>AST → C11 源码</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/compiler_c/codegen.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>compiler_c/gcc_compile.py</code></td><td>GCC 编译 EXE（UTF-8 编码修复）</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/compiler_c/gcc_compile.py" target="_blank">查看</a></td></tr>
+    </table>
+
+    <h3>haiscript/asm/ 汇编后端（NASM + lld-link 自包含）</h3>
+    <table>
+      <tr><th style="width:36%">文件</th><th>说明</th><th>GitHub 直达</th></tr>
+      <tr><td><code>asm/__init__.py</code></td><td>模块入口</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/asm/__init__.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>asm/asm_codegen.py</code></td><td>AST → NASM x86-64 汇编</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/asm/asm_codegen.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>asm/asm_compiler.py</code></td><td>调用内置 nasm + lld-link</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/asm/asm_compiler.py" target="_blank">查看</a></td></tr>
+    </table>
+
+    <h3>haiscript/lib/ 标准库（+ hsinser 安装目录）</h3>
+    <table>
+      <tr><th style="width:36%">文件</th><th>说明</th><th>GitHub 直达</th></tr>
+      <tr><td><code>lib/json.py</code></td><td>JSON 处理</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/lib/json.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>lib/path.py</code></td><td>路径操作</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/lib/path.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>lib/os.py</code></td><td>系统操作</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/lib/os.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>lib/math.py</code></td><td>数学函数</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/lib/math.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>lib/pic.py</code></td><td>图片处理</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/lib/pic.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>lib/touch.py</code></td><td>外部程序调用</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/lib/touch.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>lib/http.py</code></td><td>内网 HTTP 服务</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/lib/http.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>lib/lan.py</code></td><td>局域网功能</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/lib/lan.py" target="_blank">查看</a></td></tr>
+    </table>
+
+    <h3>haiscript/tools/ 开发工具</h3>
+    <table>
+      <tr><th style="width:36%">文件</th><th>说明</th><th>GitHub 直达</th></tr>
+      <tr><td><code>tools/formatter.py</code></td><td>源码格式化工具</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/tools/formatter.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>tools/type_checker.py</code></td><td>渐进式静态类型检查</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/tools/type_checker.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>tools/ir.py</code></td><td>IR 中间表示 + 常量折叠</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/tools/ir.py" target="_blank">查看</a></td></tr>
+    </table>
+
+    <h3>haiscript/utils/ 辅助</h3>
+    <table>
+      <tr><th style="width:36%">文件</th><th>说明</th><th>GitHub 直达</th></tr>
+      <tr><td><code>utils/colors.py</code></td><td>极简语义色（6 种）</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/utils/colors.py" target="_blank">查看</a></td></tr>
+      <tr><td><code>utils/helpers.py</code></td><td>通用辅助函数</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/haiscript/utils/helpers.py" target="_blank">查看</a></td></tr>
+    </table>
+
+    <h3>根目录文件</h3>
+    <table>
+      <tr><th style="width:36%">文件</th><th>说明</th><th>GitHub 直达</th></tr>
+      <tr><td><code>README.md</code></td><td>项目说明文档</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/README.md" target="_blank">查看</a></td></tr>
+      <tr><td><code>LICENSE</code></td><td>MIT 协议</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/LICENSE" target="_blank">查看</a></td></tr>
+      <tr><td><code>index.html</code></td><td>本官网</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/index.html" target="_blank">查看</a></td></tr>
+      <tr><td><code>demo.hs</code></td><td>示例脚本</td><td><a href="https://github.com/HTPS-CDY/HaiScript/blob/master/demo.hs" target="_blank">查看</a></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 依赖工具下载 -->
+<section>
+  <div class="wrap">
+    <h2>依赖工具下载</h2>
+    <p class="muted">汇编后端已完全自包含（内置 haiscript/asm/ 目录下所有工具和 DLL），仅 C 后端需 GCC。推荐下载：</p>
+
+    <div class="down">
+      <div class="i" style="border-color:#2ea04355;background:#0d1f16">
+        <h4 style="color:#3fb950">🚀 haiscript.tar（直接运行 EXE）</h4>
+        <p class="dsc">内含打包好的 haiscript.exe，无需安装 Python、无需编译。解压即用，汇编后端（NASM + lld-link）已完整嵌入。</p>
+        <a class="btn" style="background:#238636;border:1px solid #2ea043" href="https://github.com/HTPS-CDY/HaiScript/releases/download/1.2.0/haiscript.tar" target="_blank">⬇️ 下载 haiscript.tar</a>
+        <span class="sz">推荐：Windows 64 位直接运行版</span>
+      </div>
+
+      <div class="i">
+        <h4>🖥️ GCC（C 后端需要）</h4>
+        <p class="dsc">MinGW-w64 GCC for Windows，用于 .hs → C → EXE 编译链路。</p>
+        <a class="btn" href="https://github.com/niXman/mingw-builds-binaries/releases" target="_blank">⬇️ 下载 MinGW-w64</a>
+        <span class="sz">推荐 x86_64-ucrt-posix-seh</span>
+      </div>
+
+      <div class="i">
+        <h4>🔧 NASM（已内置）</h4>
+        <p class="dsc">汇编后端已将 nasm.exe 及所有依赖 DLL 内置到 haiscript/asm/，无需安装。</p>
+        <a class="btn out" href="https://www.nasm.us/pub/nasm/releasebuilds/" target="_blank">NASM 官网</a>
+        <span class="sz">已内置，免下载</span>
+      </div>
+
+      <div class="i">
+        <h4>🔗 LLVM lld-link（已内置）</h4>
+        <p class="dsc">链接器已内置到 haiscript/asm/（含 libLLVM-22.dll 等 9 个依赖）。</p>
+        <a class="btn out" href="https://github.com/llvm/llvm-project/releases" target="_blank">LLVM Releases</a>
+        <span class="sz">已内置，免下载</span>
+      </div>
+
+      <div class="i">
+        <h4>🐍 Python 3.10+</h4>
+        <p class="dsc">（源码版需要）纯标准库即可运行；下载 haiscript.tar 则无需此步。</p>
+        <a class="btn" href="https://www.python.org/downloads/" target="_blank">⬇️ 下载 Python</a>
+        <span class="sz">推荐 3.12.x</span>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:8px">
+      <h3 style="color:var(--ok);margin-bottom:8px">✅ 自包含校验（汇编后端）</h3>
+      <p class="muted" style="margin-bottom:8px">以下工具与 DLL 已内置到 <code>haiscript/asm/</code>，无需任何外部安装：</p>
+      <table style="margin-bottom:0">
+        <tr><th style="width:40%">类型</th><th>文件</th></tr>
+        <tr><td>汇编器</td><td><code>nasm.exe</code></td></tr>
+        <tr><td>链接器</td><td><code>lld-link.exe</code></td></tr>
+        <tr><td rowspan="8">依赖 DLL</td><td><code>libLLVM-22.dll</code> · <code>libwinpthread-1.dll</code> · <code>libstdc++-6.dll</code></td></tr>
+        <tr><td><code>libgcc_s_seh-1.dll</code> · <code>libffi-8.dll</code> · <code>libiconv-2.dll</code></td></tr>
+        <tr><td><code>libxml2-16.dll</code> · <code>libzstd.dll</code> · <code>zlib1.dll</code></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- GitHub 仓库链接汇总 -->
+<section>
+  <div class="wrap">
+    <h2>GitHub 仓库</h2>
+    <div class="feat">
+      <div class="i">
+        <div class="n">🏠 主仓库 HaiScript</div>
+        <div class="d">源代码、Issue、PR、Releases。</div>
+        <div style="margin-top:12px">
+          <a class="btn" href="https://github.com/HTPS-CDY/HaiScript" target="_blank">访问</a>
+          <a class="btn out" href="https://github.com/HTPS-CDY/HaiScript/issues" target="_blank">提 Issue</a>
+        </div>
+      </div>
+      <div class="i">
+        <div class="n">📦 包仓库 HSLib</div>
+        <div class="d">hsinser 扩展包源：packages/包名/版本.tar.gz 结构。</div>
+        <div style="margin-top:12px">
+          <a class="btn" href="https://github.com/HTPS-CDY/HSLib" target="_blank">访问</a>
+          <a class="btn out" href="https://github.com/HTPS-CDY/HSLib/issues" target="_blank">发布包请求</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 关于 -->
+<section>
+  <div class="wrap">
+    <h2>关于</h2>
+    <p style="color:var(--fg)">
+      <strong>HaiScript v1.2.0</strong> &nbsp;·&nbsp;
+      作者：<strong>Yan_Canghai (HTPS-CDY)</strong> &nbsp;·&nbsp;
+      协议：<strong>MIT</strong>
+    </p>
+    <p class="muted">
+      官网：<a href="https://haiscript.netlify.app/" target="_blank">https://haiscript.netlify.app/</a> &nbsp;|
+      文档：<a href="https://github.com/HTPS-CDY/HaiScript/blob/master/README.md" target="_blank">README</a>
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>© 2026 Yan_Canghai (HTPS-CDY) · <a href="https://haiscript.netlify.app/" target="_blank">haiscript.netlify.app</a> · MIT License</p>
+  </div>
+</footer>
+
+</body>
+</html>
