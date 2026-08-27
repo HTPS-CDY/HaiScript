@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.hs
+!demo.hs
+!build_test.hs
+!ext_test.hs
+!type_test.hs
+!stdlib_test.hs
+!lib_math.hs
